@@ -5,14 +5,12 @@ import { addSchool, deleteSchool, schoolList, connectDB } from "./schoolData.js"
 
 const app = express();
 
-// Fix __dirname for ES module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use(express.json());
 app.use(urlencoded({ extended: true }));
 
-// Connect DB (IMPORTANT)
 await connectDB();
 
 app.get("/", (req, res) => {
@@ -49,7 +47,6 @@ app.delete("/deleteSchool/:id", async (req, res) => {
   });
 });
 
-// IMPORTANT: Use Render PORT
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {

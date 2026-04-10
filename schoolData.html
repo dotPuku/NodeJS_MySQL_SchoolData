@@ -1,0 +1,154 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>School Data</title>
+  <style>
+    .schoolDataForm {
+      display: block;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 500px;
+      height: auto;
+      min-height: 250px;
+      margin: auto;
+      background: #efefef;
+      padding: 15px;
+      border-radius: 5px;
+
+      & input {
+        display: block;
+        width: 100%;
+        padding: 5px;
+      }
+
+      & label {
+        font-weight: bold;
+        line-height: 2;
+      }
+
+      & button {
+        padding: 8px 10px;
+      }
+
+      & .position {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 5px;
+        margin-top: 10px;
+
+        & input {
+          margin: 5px;
+          width: 150px;
+        }
+      }
+
+      & .submit {
+        width: 100%;
+        margin-top: 25px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="schoolDataForm">
+    <form action="/" method="post" id="schoolDataForm">
+      <label for="name">Enter school Name :</label>
+      <input type="text" name="name" id="name" placeholder="Enter school name..." required>
+      <label for="address">Enter school Address :</label>
+      <input type="text" name="address" placeholder="Enter school address..." id="address">
+      <div class="position">
+        <label for="latitude">Latitude :</label>
+        <input type="text" name="latitude" placeholder="latitude..." id="latitude">
+        <label for="longitude">Longitude :</label>
+        <input type="text" name="longitude" placeholder="longitude..." id="longitude">
+      </div>
+      <button class="submit" type="submit">Add School</button>
+    </form>
+    <p>Click "Show School" after only Latitude & Longitude showing...</p>
+    <button id="showList">Show School List</button>
+    <ul id="schoolList"></ul>
+  </div>
+  <script>
+    const getPosition = (position) => {
+      const { latitude, longitude } = position.coords;
+      document.querySelector("#latitude").value = latitude;
+      document.querySelector("#longitude").value = longitude;
+    };
+    navigator.geolocation.getCurrentPosition(getPosition, (error) => {
+      console.log(error);
+    });
+    const schoolList = async () => {
+      try {
+        const lat = document.querySelector("#latitude").value;
+        const lng = document.querySelector("#longitude").value;
+        if (lat != "" && lng != "") {
+          const response = await fetch(`/listSchools?lat=${lat}&lng=${lng}`);
+          if (response.ok) {
+            const list = await response.json();
+            const schooListDiv = document.querySelector("#schoolList");
+            schooListDiv.innerHTML = "";
+            list.forEach(school => {
+              const li = document.createElement("li");
+              li.innerHTML = `
+            <p><b>${school.name.toUpperCase()}</b></p>
+            <p><b>Latitude --> </b>${school.latitude}, <b>Longitude --> </b>${school.longitude}</p>
+            <p><b>@</b> --> [ ${school.address} ]</p>
+            <button onclick="deleteSchool(${school.id})">Delete</button>
+            `;
+              schooListDiv.appendChild(li);
+            });
+          }
+        }
+      } catch (error) {
+
+      }
+    };
+    document.querySelector("#schoolDataForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      const name = form.get("name");
+      const address = form.get("address");
+      const latitude = form.get("latitude");
+      const longitude = form.get("longitude");
+      try {
+        const response = await fetch("/addSchool",
+          {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, address, latitude, longitude })
+          }
+        );
+        if (response.ok) {
+          const res = await response.json();
+          await schoolList(res.data);
+        } else {
+          const res = await response.json();
+          console.log(res.data);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    });
+    document.querySelector("#showList").addEventListener("click", async () => {
+      await schoolList();
+    });
+    const deleteSchool = async (id) => {
+      const response = await fetch(`/deleteSchool/${id}`, {
+        method: "DELETE"
+      });
+      if (response.ok) {
+        await schoolList();
+      }
+    }
+  </script>
+</body>
+
+</html>

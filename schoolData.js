@@ -12,9 +12,9 @@ export const connectDB = async () => {
       port: process.env.DB_PORT
     });
 
-    console.log("✅ MySQL Connected");
+    console.log("MySQL Connected");
   } catch (err) {
-    console.error("❌ DB Connection Failed:", err.message);
+    console.error("DB Connection Failed:", err.message);
   }
 };
 

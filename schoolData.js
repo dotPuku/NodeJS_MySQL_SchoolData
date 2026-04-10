@@ -1,25 +1,33 @@
 import mysql from "mysql2/promise";
 
-try {
-  const connection = await mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME
-  });
+let db;
 
-  console.log("✅ DB Connected");
-} catch (err) {
-  console.error("❌ DB Error:", err.message);
-}
+export const connectDB = async () => {
+  try {
+    db = await mysql.createConnection({
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASS,
+      database: process.env.DB_NAME,
+      port: process.env.DB_PORT
+    });
+
+    console.log("✅ MySQL Connected");
+  } catch (err) {
+    console.error("❌ DB Connection Failed:", err.message);
+  }
+};
 
 export const addSchool = async (name, address, latitude, longitude) => {
-  await db.execute("INSERT INTO schools(name,address,latitude,longitude) VALUES(?,?,?,?)", [name, address, latitude, longitude])
-}
+  await db.execute(
+    "INSERT INTO schools(name,address,latitude,longitude) VALUES(?,?,?,?)",
+    [name, address, latitude, longitude]
+  );
+};
 
 export const schoolList = async (lat, lng) => {
-  const [rows] = await db.execute(`
-    SELECT 
+  const [rows] = await db.execute(
+    `SELECT 
         id,
         name,
         address,
@@ -33,16 +41,12 @@ export const schoolList = async (lat, lng) => {
           )
         ) AS distance
       FROM schools
-      ORDER BY distance ASC
-      `,
+      ORDER BY distance ASC`,
     [lat, lng, lat]
   );
-  return rows
-}
+  return rows;
+};
 
 export const deleteSchool = async (id) => {
-  await db.execute(`
-    DELETE FROM schools
-    where id=?
-    `, [id])
-}
+  await db.execute("DELETE FROM schools WHERE id=?", [id]);
+};

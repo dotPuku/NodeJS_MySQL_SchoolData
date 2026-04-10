@@ -1,21 +1,17 @@
 import mysql from "mysql2/promise";
 
-const db = await mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "mysql04@#",
-  database: "newsql_db"
-});
+try {
+  const connection = await mysql.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME
+  });
 
-console.log("MySQL Connected Succesfully With Database newsql_db");
-
-// await db.execute(`
-//   CREATE TABLE schools(
-//   id INT AUTO_INCREMENT PRIMARY KEY,
-//   name VARCHAR(100) NOT NULL,
-//   address VARCHAR(300) NOT NULL
-//   )
-//   `)
+  console.log("✅ DB Connected");
+} catch (err) {
+  console.error("❌ DB Error:", err.message);
+}
 
 export const addSchool = async (name, address, latitude, longitude) => {
   await db.execute("INSERT INTO schools(name,address,latitude,longitude) VALUES(?,?,?,?)", [name, address, latitude, longitude])
